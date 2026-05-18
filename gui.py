@@ -5,7 +5,7 @@ import threading
 import os
 import torch
 
-# Импортируем твою логику
+
 try:
     from main import load_resources, analyze_reviews
     from modules.model import predict_review
@@ -19,7 +19,7 @@ class DiplomaApp(ctk.CTk):
         super().__init__()
 
         self.title("Analyzer")
-        self.geometry("980x850")  # Оптимальный размер под дашборд
+        self.geometry("980x850")
         ctk.set_appearance_mode("dark")
 
         # Ресурсы
@@ -41,16 +41,13 @@ class DiplomaApp(ctk.CTk):
         self.entry = ctk.CTkEntry(self.main_frame, placeholder_text="Введите текст отзыва...", width=700, height=45)
         self.entry.pack(pady=15)
 
-        # ==========================================
-        # БЛОК РЕЗУЛЬТАТОВ ОДИНОЧНОГО АНАЛИЗА (ДВЕ КАРТОЧКИ)
-        # ==========================================
+
         ctk.CTkLabel(self.main_frame, text="Результат одиночной проверки", font=("Arial", 14, "bold"),
                      text_color="#3a86ff").pack(pady=(5, 5))
 
         self.cards_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.cards_frame.pack(pady=5, padx=20)
 
-        # ЛЕВАЯ КАРТОЧКА: ТОНАЛЬНОСТЬ
         self.sent_card = ctk.CTkFrame(self.cards_frame, width=280, height=140, fg_color="#2b2b2b", corner_radius=10,
                                       border_width=1, border_color="#404040")
         self.sent_card.pack(side="left", padx=15)
@@ -65,7 +62,6 @@ class DiplomaApp(ctk.CTk):
                                             text_color="gray")
         self.sent_conf_label.pack(pady=(0, 10))
 
-        # ПРАВАЯ КАРТОЧКА: АНТИСПАМ
         self.trust_card = ctk.CTkFrame(self.cards_frame, width=280, height=140, fg_color="#2b2b2b", corner_radius=10,
                                        border_width=1, border_color="#404040")
         self.trust_card.pack(side="right", padx=15)
@@ -79,6 +75,7 @@ class DiplomaApp(ctk.CTk):
         self.trust_verdict_label = ctk.CTkLabel(self.trust_card, text="Ожидание анализа", font=("Arial", 11, "italic"),
                                                 text_color="gray")
         self.trust_verdict_label.pack(pady=(0, 10))
+
         # ==========================================
 
         self.single_btn = ctk.CTkButton(self.main_frame, text="Анализировать текст",
@@ -87,21 +84,20 @@ class DiplomaApp(ctk.CTk):
 
         ctk.CTkLabel(self.main_frame, text="—" * 65, text_color="gray").pack(pady=5)
 
-        # Кнопка для CSV
+
         self.csv_btn = ctk.CTkButton(self.main_frame, text="Пакетная обработка CSV",
                                      state="disabled", fg_color="#2c6e49", command=self.analyze_csv)
         self.csv_btn.pack(pady=10)
 
         # ==========================================
-        # БЛОК СТАТИСТИКИ ПАКЕТНОЙ ОБРАБОТКИ CSV (ТОЖЕ КАРТОЧКИ)
-        # ==========================================
+
         self.stats_frame = ctk.CTkFrame(self.main_frame, fg_color="#1e1e1e", corner_radius=12)
         self.stats_frame.pack(pady=15, padx=20, fill="x")
 
         ctk.CTkLabel(self.stats_frame, text="Статистика пакетной обработки выборки", font=("Arial", 16, "bold"),
                      text_color="#3a86ff").pack(pady=10)
 
-        # Счетчик общего кол-ва отзывов по центру
+
         self.total_processed_label = ctk.CTkLabel(self.stats_frame, text="Обработано отзывов: 0 шт.",
                                                   font=("Arial", 13, "bold"))
         self.total_processed_label.pack(pady=(0, 5))
@@ -109,7 +105,7 @@ class DiplomaApp(ctk.CTk):
         self.csv_cards_layout = ctk.CTkFrame(self.stats_frame, fg_color="transparent")
         self.csv_cards_layout.pack(pady=10, padx=15)
 
-        # ЛЕВАЯ КАРТОЧКА CSV: МАКРО-ТОНАЛЬНОСТЬ ВЫБОРКИ
+
         self.csv_sent_card = ctk.CTkFrame(self.csv_cards_layout, width=320, height=150, fg_color="#2b2b2b",
                                           corner_radius=10, border_width=1, border_color="#404040")
         self.csv_sent_card.pack(side="left", padx=15)
@@ -125,7 +121,7 @@ class DiplomaApp(ctk.CTk):
                                                    font=("Arial", 11, "italic"), text_color="gray", justify="center")
         self.csv_sent_details_label.pack(pady=(2, 10))
 
-        # ПРАВАЯ КАРТОЧКА CSV: ИТОГОВОЕ ЗДОРОВЬЕ ВЫБОРКИ
+
         self.csv_trust_card = ctk.CTkFrame(self.csv_cards_layout, width=320, height=150, fg_color="#2b2b2b",
                                            corner_radius=10, border_width=1, border_color="#404040")
         self.csv_trust_card.pack(side="right", padx=15)
@@ -139,9 +135,10 @@ class DiplomaApp(ctk.CTk):
         self.kpi_verdict_label = ctk.CTkLabel(self.csv_trust_card, text="Ожидание загрузки CSV",
                                               font=("Arial", 11, "italic"), text_color="gray")
         self.kpi_verdict_label.pack(pady=(0, 10))
+
         # ==========================================
 
-        # Текстовое окно для логов
+
         self.result_text = ctk.CTkTextbox(self.main_frame, width=800, height=150, font=("Consolas", 14))
         self.result_text.pack(pady=15)
         self.result_text.insert("0.0", "Система готова к работе.")
@@ -183,7 +180,7 @@ class DiplomaApp(ctk.CTk):
 
         try:
             sentiment, conf, aspects = predict_review(text, self.model, self.tokenizer, self.device)
-            # ИСПРАВЛЕНО: возвращаем sim_score=1.0 для корректного косинусного анализа эталонов в antispam.py
+
             trust_score, _ = compute_trust_score(text, self.karta, sim_score=1.0)
 
             if trust_score <= 1.0:
@@ -199,7 +196,7 @@ class DiplomaApp(ctk.CTk):
             res += f"Аспекты: {', '.join(asp_names)}\n"
             res += f"-----------------\n\n"
 
-            # ОБНОВЛЯЕМ ЛЕВУЮ КАРТОЧКУ (ТОНАЛЬНОСТЬ)
+
             if sentiment == 'positive':
                 self.sent_status_label.configure(text="ПОЗИТИВ", text_color="#2c6e49")
                 self.sent_card.configure(border_color="#2c6e49")
@@ -208,7 +205,7 @@ class DiplomaApp(ctk.CTk):
                 self.sent_card.configure(border_color="#b7094c")
             self.sent_conf_label.configure(text=f"Уверенность: {conf * 100:.1f}%")
 
-            # ОБНОВЛЯЕМ ПРАВУЮ КАРТОЧКУ (АНТИСПАМ)
+
             self.trust_score_label.configure(text=f"{trust_display:.1f}%")
             if trust_display > 50:
                 self.trust_score_label.configure(text_color="#2c6e49")
@@ -262,7 +259,7 @@ class DiplomaApp(ctk.CTk):
                 spam_share = spam_count / total if total > 0 else 0
                 health_share = 1.0 - spam_share
 
-                # Передаем структурированные данные в UI
+
                 self.after(0, lambda: self.update_csv_stats_ui(total, pos_share, neg_share, avg_conf, health_share))
                 self.after(0,
                            lambda: messagebox.showinfo("Готово", "Файл сохранен!\nМетрики ML и Антиспама обновлены."))
@@ -278,7 +275,7 @@ class DiplomaApp(ctk.CTk):
         """ Метод отрисовки макро-карточек для результатов пакетного анализа CSV """
         self.total_processed_label.configure(text=f"Обработано отзывов: {total} шт.")
 
-        # 1. ОБНОВЛЯЕМ НОВУЮ КАРТОЧКУ МАКРО-ТОНАЛЬНОСТИ СВЕХУ
+
         conf_multiplier = 100 if avg_conf <= 1.0 else 1
         avg_conf_pct = avg_conf * conf_multiplier
 
@@ -292,7 +289,7 @@ class DiplomaApp(ctk.CTk):
         details_text = f"Позитив: {pos_share * 100:.1f}% | Негатив: {neg_share * 100:.1f}%\nСр. уверенность BERT: {avg_conf_pct:.1f}%"
         self.csv_sent_details_label.configure(text=details_text, text_color="white")
 
-        # 2. ОБНОВЛЯЕМ КАРТОЧКУ ЗДОРОВЬЯ ДЛЯ АНТИСПАМА
+        
         health_percentage = health_share * 100
         self.kpi_score_label.configure(text=f"{health_percentage:.1f}%")
 
